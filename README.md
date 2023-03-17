@@ -1,4 +1,4 @@
-# Natural language processing course 2022/23: `Extending SloWNet using the CJVT Synonim Dictionary`
+# Natural language processing course 2022/23: `Extending SloWNet using Machine Translation and Digital Dictionary Database`
 
 Team members:
  * `Miha Bombek`, `63160074`, `mb3926@student.uni-lj.si`
