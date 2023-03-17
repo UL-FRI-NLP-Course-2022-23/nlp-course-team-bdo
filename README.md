@@ -34,4 +34,4 @@ Containing all of the resources (e.g. data files, images etc.).
 
 ### The interim/final report and presentation folders ###
 
-Containing the intermediate and final reports and the presentation of the project.
+Containing the proposal, intermediate and final reports and the presentation of the project.
