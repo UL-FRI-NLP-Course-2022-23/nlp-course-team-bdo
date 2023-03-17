@@ -1,8 +1,8 @@
-# Natural language processing course 2022/23: `Put name of your project here`
+# Natural language processing course 2022/23: `Extending SloWNet using the CJVT Synonim Dictionary`
 
 Team members:
  * `Miha Bombek`, `63160074`, `mb3926@student.uni-lj.si`
- * `MEMBER FULL NAME`, `STUDENT ID`, `STUDENT E-MAIL`
+ * `Luka Dragar`, `63180009`, `ld7537@student.uni-lj.si`
  * `David Ocepek`, `63160248`, `do8572@student.uni-lj.si`
  
 Group public acronym/name: `BDO`
