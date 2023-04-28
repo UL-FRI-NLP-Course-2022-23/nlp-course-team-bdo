@@ -257,11 +257,11 @@ if __name__ == '__main__':
     from random import choice
 
     # randomly translate a synset
-    rnd_node = choice(list(trans.slownet.nodes))
-    rnd_node_dict = trans.slownet.nodes[rnd_node]
+    # rnd_node = choice(list(trans.slownet.nodes))
+    # rnd_node_dict = trans.slownet.nodes[rnd_node]
     
-    trans.translate_synset(rnd_node_dict)
-    print(rnd_node_dict)
+    # trans.translate_synset(rnd_node_dict)
+    # print(rnd_node_dict)
 
     # translate entirety of wordnet
     trans.translate_wordnet()
