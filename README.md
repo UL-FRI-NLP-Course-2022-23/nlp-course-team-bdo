@@ -17,6 +17,10 @@ For our project we propose to extend the current SloWNet (43,460 concepts) by us
 There are several subfolders in the repository:
 
 * the source folder (`/src`),
+    * translation folder (`/src/translation`)
+    * DDD linking folder (`/src/linking`)
+    * english-to-slovenian translation docker container (`/src/translation/ENSL_NMT`)
+    * slovenian-to-english translation docker container (`/src/translation/SLEN_NMT`)
 * the res folder (`/res`),
 * the interim report folder (`/interim_report`),
 * the final report folder (`/final_report`),

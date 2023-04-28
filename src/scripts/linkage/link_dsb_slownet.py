@@ -5,8 +5,8 @@ import csv, pickle, time
 class Linker:
 
     def __init__(self):
-        self.dsb_df = pd.read_csv('../../res/dsb_data.csv', delimiter='|', low_memory=False)
-        self.slownet = pickle.load(open('../../res/slownet_extended.graph', 'rb'))
+        self.dsb_df = pd.read_csv('../../../res/dsb_data.csv', delimiter='|', low_memory=False)
+        self.slownet = pickle.load(open('../../../res/slownet_extended.graph', 'rb'))
 
     def get_synset_relations(self, synset_id):
         hypernyms = []
@@ -28,7 +28,7 @@ class Linker:
         print('Number of different SloWnet synsets linked: ', len(set(matched_synsets)))
 
     def link_entities(self):
-        csv_file = open('../../res/dsb_slownet_links_2.csv', 'w')
+        csv_file = open('../../../res/dsb_slownet_links_2.csv', 'w')
         fieldnames = ['dsb_sense_id', 'slownet_synset_id']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames, delimiter='|')
         writer.writeheader()

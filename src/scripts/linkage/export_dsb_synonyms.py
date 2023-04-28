@@ -150,7 +150,7 @@ class DSB_exporter:
         return related_forms
         
     def export_data(self):
-        csv_file = open('../../res/dsb_data.csv', 'w')
+        csv_file = open('../../../res/dsb_data.csv', 'w')
         fieldnames = [
             'lexical_unit_id',
             'lexical_unit_type',
