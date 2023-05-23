@@ -5,6 +5,7 @@ from lxml import etree
 import re
 import json
 import requests
+import classla
 
 slownet_graph_output_filepath = "../../../res/wordnet_slownet.graph"
 slownet_extended_filepath = "../../../res/slownet_extended.graph"
@@ -28,6 +29,14 @@ class Translator:
 
         # regex to keep only spaces and alphabet chars
         self.alpha_filter = re.compile('[^\w^\s]+')
+
+        self.nlp = classla.Pipeline(lang = 'sl', processors = 'tokenize,pos,lemma')
+
+    def lemmatize(self, word):
+
+        doc = self.nlp(word)
+
+        return doc.sentences[0].words[0].lemma
 
     def translate_wordnet(self, only_new = True):
         """Translate entire wordnet.
@@ -114,6 +123,10 @@ class Translator:
         translation = translation.replace('(angleško)', '')
         translation = translation.replace('(angleščina)', '')
 
+        # cleaning of translations
+
+        translation = self.lemmatize(translation)
+
         translations = [(translation, 1.00)]
 
         return translations
@@ -159,8 +172,12 @@ class Translator:
 
             ts = self.alpha_filter.sub('', t)
 
+            ts = ts.replace('angleščina', '')
+            ts = ts.replace('angleško', '')
             ts = ts.replace('(angleško)', '')
             ts = ts.replace('(angleščina)', '')
+
+            ts = self.lemmatize(ts)
             
             translations.append((ts, 1.00))
 
@@ -181,9 +198,19 @@ class Translator:
             dict: same node but with filled in dict
         """
 
+        synset_type = node['synset_id'][-1]
+        print(synset_type)
+
+        node['confidences'] = {}
+
         slo_literals = set(node['slo_literals'])
 
         eng_literals = [eng_literal for eng_literal in node['eng_literals']]
+
+        for slo_literal in slo_literals:
+            
+            # we assume with high degree of certainty that previous translations are correct
+            node['confidences'][slo_literal] = 0.81
 
         if mode == 'single' or len(eng_literals) == 1:
 
@@ -204,6 +231,13 @@ class Translator:
                 slo_literals.add(translation[0])
 
         slo_literals = list(slo_literals)
+
+        # set confidences for each translation
+        for slo_literal in slo_literals:
+
+            if slo_literal not in node['confidences'].keys():
+
+                node['confidences'][slo_literal] = 0.38
         
         # reverse translate to check if bijection
         if cautious:
@@ -220,32 +254,51 @@ class Translator:
 
                     is_bijection = False
 
+                    print(translations)
+
                     for translation in translations:
 
-                        if translation[0] in eng_literals:
+                        raw_translation = translation[0]
+
+                        cleaned_translation = raw_translation.lower()
+                        cleaned_translation = cleaned_translation.replace('the', '')
+                        cleaned_translation = cleaned_translation.replace('\'', '')
+
+                        if cleaned_translation in eng_literals:
 
                             is_bijection = True
 
+                    verified_literals.append(slo_literal)
+
                     if is_bijection:
 
-                        verified_literals.append(translation[0])
+                        node['confidences'][slo_literal] += 0.1
 
             elif mode == 'list':
 
                 translations = self.translate_list(slo_literals, reverse = True)
 
                 for i in range(len(translations)):
-                    
-                    if translations[i][0] in eng_literals:
 
-                        verified_literals.append(translation[0])
+                    raw_translation = translations[i][0]
+
+                    cleaned_translation = raw_translation.lower()
+                    cleaned_translation = cleaned_translation.replace('the', '')
+                    cleaned_translation = cleaned_translation.replace('\'', '')
+
+                    verified_literals.append(slo_literals[i])
+                    
+                    if cleaned_translation in eng_literals:
+
+                        node['confidences'][slo_literals[i]] += 0.1
 
             slo_literals = verified_literals
 
+        # TODO: leverage context
 
-        # TODO: Don't remove previously added lists
-
-        node['slo_literals'] = slo_literals
+        # add translated slovenian literals
+        node['slo_literals'].extend(slo_literals)
+        node['slo_literals'] = list(set(node['slo_literals']))
 
         return node
 
@@ -257,11 +310,11 @@ if __name__ == '__main__':
     from random import choice
 
     # randomly translate a synset
-    # rnd_node = choice(list(trans.slownet.nodes))
-    # rnd_node_dict = trans.slownet.nodes[rnd_node]
+    rnd_node = choice(list(trans.slownet.nodes))
+    rnd_node_dict = trans.slownet.nodes[rnd_node]
     
-    # trans.translate_synset(rnd_node_dict)
-    # print(rnd_node_dict)
+    trans.translate_synset(rnd_node_dict)
+    print(rnd_node_dict)
 
     # translate entirety of wordnet
-    trans.translate_wordnet()
+    # trans.translate_wordnet()
