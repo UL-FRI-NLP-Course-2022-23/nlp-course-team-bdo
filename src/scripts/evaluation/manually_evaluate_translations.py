@@ -20,6 +20,7 @@ slownet_graph: Graph = wordnet_graph.subgraph(
 nemo_nodes = [slowenet_extended.nodes[node_id] for node_id in nemo_nodes if len(node_id) > 0]
 all_nodes = [slowenet_extended.nodes[node_id] for node_id in all_nodes if len(node_id) > 0]
 extended_nodes = [slownet_graph.nodes[node_id] for node_id in original_nodes if len(node_id) > 0]
+original_nodes = [slowenet_extended.nodes[node_id] for node_id in original_nodes if len(node_id) > 0]
 nodes_to_evaluate = input("Which nodes to evaluate (nemo/all/original): ")
 
 if nodes_to_evaluate == 'nemo':

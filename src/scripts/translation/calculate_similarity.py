@@ -1,13 +1,15 @@
 import pickle
+import sys
+
 from lxml import etree
 from gensim.models import KeyedVectors
 from networkx import Graph
 
 slownet_extended_graph_filepath = '../../../res/slownet_extended.graph'
-slowenet_extended: Graph = pickle.load(open(slownet_extended_graph_filepath, 'rb'))
+slownet_extended: Graph = pickle.load(open(slownet_extended_graph_filepath, 'rb'))
 slownet_xml_filepath = "../../../res/slownet-2015-05-07.xml"
 
-model: KeyedVectors = KeyedVectors.load('vectors-clarin-sl-token.ft.sg.kv', mmap='r')
+model: KeyedVectors = KeyedVectors.load('../evaluation/vectors-clarin-sl-token.ft.sg.kv', mmap='r')
 
 root_slownet = etree.parse(slownet_xml_filepath)
 synsets = root_slownet.xpath("//SYNSET")
@@ -21,12 +23,12 @@ for synset in synsets:
         other_synset_ids.append(synset.xpath("ID/text()")[0])
 
 print("Updating confidences for", len(other_synset_ids), "synsets...")
-i = 0
 for other_node in other_synset_ids:
-    current_other_node = slowenet_extended.nodes[other_node]
+    current_other_node = slownet_extended.nodes[other_node]
     other_literals = current_other_node["slo_literals"]
     if len(other_literals) < 2:
         continue
+    avg_sim = 0
     for literal1 in other_literals:
         original_literal1 = literal1
         sum_sim = 0
@@ -43,9 +45,13 @@ for other_node in other_synset_ids:
             sum_sim = 0
         else:
             sum_sim /= len(other_literals)
-        current_confidence = current_other_node["confidences"][original_literal1]
-        if sum_sim > current_confidence:
-            current_other_node["confidences"][original_literal1] = sum_sim * 0.6 + current_confidence * 0.4
-            i += 1
+        avg_sim += sum_sim
+    avg_sim /= len(other_literals)
+    current_other_node["synonyms_confidence"] = avg_sim
 
-print("Updated confidences for", i, "synsets.")
+print("Updated synset confidences.")
+
+extended_slownet_with_similarities = "../../../res/slownet_extended_with_similarities.graph"
+pickle.dump(slownet_extended, open(extended_slownet_with_similarities, 'wb'))
+
+print("\nSerialized graph to file:", extended_slownet_with_similarities)
