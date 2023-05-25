@@ -2,13 +2,29 @@ import pickle as pkl
 import networkx as nx
 from lxml import etree
 
+import os
+
 import re
 import json
 import requests
 import classla
 
+import signal
+
 slownet_graph_output_filepath = "../../../res/wordnet_slownet.graph"
 slownet_extended_filepath = "../../../res/slownet_extended.graph"
+
+class timeout:
+    def __init__(self, seconds=1, error_message='Timeout'):
+        self.seconds = seconds
+        self.error_message = error_message
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
 
 class Translator:
 
@@ -18,10 +34,19 @@ class Translator:
 
     def translator_setup(self):
 
-        with open(slownet_graph_output_filepath, 'rb') as slownet_file:
+        if os.path.exists(slownet_extended_filepath):
 
-            # setup wordnet graph
-            self.slownet = pkl.load(slownet_file)
+            with open(slownet_extended_filepath, 'rb') as slownet_file:
+
+                # setup wordnet graph
+                self.slownet = pkl.load(slownet_file)
+
+        else:
+
+            with open(slownet_graph_output_filepath, 'rb') as slownet_file:
+
+                # setup wordnet graph
+                self.slownet = pkl.load(slownet_file)
         
         # URL for running docker API
         self.translate_api_url = 'http://localhost:4001/api/translate'
@@ -124,8 +149,17 @@ class Translator:
         translation = translation.replace('(angleščina)', '')
 
         # cleaning of translations
+        old_ts = translation
 
-        translation = self.lemmatize(translation)
+        with timeout(seconds=5):
+                
+            try:
+
+                translation = self.lemmatize(translation)
+
+            except TimeoutError:
+
+                translation = old_ts
 
         translations = [(translation, 1.00)]
 
@@ -177,7 +211,17 @@ class Translator:
             ts = ts.replace('(angleško)', '')
             ts = ts.replace('(angleščina)', '')
 
-            ts = self.lemmatize(ts)
+            old_ts = ts
+            
+            with timeout(seconds=5):
+                
+                try:
+
+                    ts = self.lemmatize(ts)
+
+                except TimeoutError:
+
+                    ts = old_ts
             
             translations.append((ts, 1.00))
 
@@ -199,7 +243,6 @@ class Translator:
         """
 
         synset_type = node['synset_id'][-1]
-        print(synset_type)
 
         node['confidences'] = {}
 
@@ -254,8 +297,6 @@ class Translator:
 
                     is_bijection = False
 
-                    print(translations)
-
                     for translation in translations:
 
                         raw_translation = translation[0]
@@ -294,8 +335,6 @@ class Translator:
 
             slo_literals = verified_literals
 
-        # TODO: leverage context
-
         # add translated slovenian literals
         node['slo_literals'].extend(slo_literals)
         node['slo_literals'] = list(set(node['slo_literals']))
@@ -317,4 +356,4 @@ if __name__ == '__main__':
     print(rnd_node_dict)
 
     # translate entirety of wordnet
-    # trans.translate_wordnet()
+    trans.translate_wordnet(only_new = True)
