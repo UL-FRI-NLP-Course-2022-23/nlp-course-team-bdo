@@ -45,7 +45,7 @@ class Linker:
         fieldnames = [
             'dsb_sense_id',
             'slownet_synset_id',
-            'matched_category',
+            'number_of_synset_literals',
             'matched_synonyms',
             'matched_antonyms',
             'matched_hypernyms',
@@ -57,8 +57,6 @@ class Linker:
         match_counter = dict()
         matched_senses = []
         matched_synsets = []
-
-        #match_threshold = 1
 
         # Iterate over synsets in SloWnet
         for synset_id in self.slownet.nodes:
@@ -93,10 +91,6 @@ class Linker:
                     matching_synonyms = set(synonyms) & set(candidate_synonyms)
                     matching_antonyms = set(antonyms) & set(candidate_antonyms)
                     matching_hypernyms = set(hypernyms) & set(candidate_hypernyms)
-
-                    matched_synonyms = '/'.join(map(str, [len(matching_synonyms), len(synonyms)]))
-                    matched_antonyms = '/'.join(map(str, [len(matching_antonyms), len(antonyms)]))
-                    matched_hypernyms = '/'.join(map(str, [len(matching_hypernyms), len(hypernyms)]))
                     matched_category = True if category == candidate_category else False
 
                     if (len(matching_synonyms) in match_counter):
@@ -113,15 +107,15 @@ class Linker:
                         row = {
                             'dsb_sense_id': candidate['sense_id'],
                             'slownet_synset_id': synset_id,
-                            'matched_category': matched_category,
-                            'matched_synonyms': matched_synonyms,
-                            'matched_antonyms': matched_antonyms,
-                            'matched_hypernyms': matched_hypernyms,
+                            'number_of_synset_literals': len(slo_literals),
+                            'matched_synonyms': len(matching_synonyms),
+                            'matched_antonyms': len(matching_antonyms),
+                            'matched_hypernyms': len(matching_hypernyms),
                             'dsb_dummy_sense': candidate_dummy}
                         writer.writerow(row)
                         matched_senses.append(candidate['sense_id'])
                         matched_synsets.append(synset_id)
-            
+                        
         csv_file.close()
         self.print_stats(match_counter, matched_senses, matched_synsets)
         
