@@ -1,6 +1,8 @@
+### IMPORTS ###
 import pickle as pkl
 import networkx as nx
 from lxml import etree
+import numpy as np
 
 import os
 
@@ -11,8 +13,15 @@ import classla
 
 import signal
 
+### CONSTANTS ###
+
 slownet_graph_output_filepath = "../../../res/wordnet_slownet.graph"
 slownet_extended_filepath = "../../../res/slownet_extended.graph"
+
+human_translation_confidence = 0.42
+machine_translation_confidence = 0.91
+increase_in_confidence = 0.1
+bijection_check = True
 
 class timeout:
     def __init__(self, seconds=1, error_message='Timeout'):
@@ -81,7 +90,7 @@ class Translator:
 
             if not only_new or len(node['slo_literals']) == 0:
                 
-                self.translate_synset(node)
+                self.translate_synset(node, cautious = bijection_check)
 
             if ind % 10 == 0:
 
@@ -253,7 +262,7 @@ class Translator:
         for slo_literal in slo_literals:
             
             # we assume with high degree of certainty that previous translations are correct
-            node['confidences'][slo_literal] = 0.81
+            node['confidences'][slo_literal] = human_translation_confidence
 
         if mode == 'single' or len(eng_literals) == 1:
 
@@ -280,7 +289,7 @@ class Translator:
 
             if slo_literal not in node['confidences'].keys():
 
-                node['confidences'][slo_literal] = 0.38
+                node['confidences'][slo_literal] = machine_translation_confidence
         
         # reverse translate to check if bijection
         if cautious:
@@ -313,13 +322,13 @@ class Translator:
 
                     if is_bijection:
 
-                        node['confidences'][slo_literal] += 0.1
+                        node['confidences'][slo_literal] += increase_in_confidence
 
             elif mode == 'list':
 
                 translations = self.translate_list(slo_literals, reverse = True)
 
-                for i in range(len(translations)):
+                for i in range(np.min([len(translations), len(slo_literals)])):
 
                     raw_translation = translations[i][0]
 
@@ -331,7 +340,7 @@ class Translator:
                     
                     if cleaned_translation in eng_literals:
 
-                        node['confidences'][slo_literals[i]] += 0.1
+                        node['confidences'][slo_literals[i]] += increase_in_confidence
 
             slo_literals = verified_literals
 
