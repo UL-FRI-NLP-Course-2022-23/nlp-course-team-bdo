@@ -35,7 +35,7 @@ slownet_extended_graph_filepath = '../../../res/slownet_extended.graph'
 wordnet_slownet_graph_filepath = '../../../res/wordnet_slownet.graph'
 slownet_xml_filepath = "../../../res/slownet-2015-05-07.xml"
 
-sample_size = 10
+sample_size = 50
 
 start = time.time()
 print("Loading graph...")
